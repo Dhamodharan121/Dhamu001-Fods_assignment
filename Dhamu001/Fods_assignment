@@ -1,0 +1,355 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "95af0738",
+   "metadata": {
+    "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
+    "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
+    "execution": {
+     "iopub.execute_input": "2024-07-26T18:40:28.528731Z",
+     "iopub.status.busy": "2024-07-26T18:40:28.528324Z",
+     "iopub.status.idle": "2024-07-26T18:40:29.423386Z",
+     "shell.execute_reply": "2024-07-26T18:40:29.422149Z"
+    },
+    "papermill": {
+     "duration": 0.904394,
+     "end_time": "2024-07-26T18:40:29.426510",
+     "exception": false,
+     "start_time": "2024-07-26T18:40:28.522116",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "/kaggle/input/death-rates-united-states/Death_rates.csv\n",
+      "/kaggle/input/death-rates-united-states/Death_rates_for_suicide__by_sex__race__Hispanic_origin__and_age__United_States.csv\n"
+     ]
+    }
+   ],
+   "source": [
+    "# This Python 3 environment comes with many helpful analytics libraries installed\n",
+    "# It is defined by the kaggle/python Docker image: https://github.com/kaggle/docker-python\n",
+    "# For example, here's several helpful packages to load\n",
+    "\n",
+    "import numpy as np # linear algebra\n",
+    "import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)\n",
+    "\n",
+    "# Input data files are available in the read-only \"../input/\" directory\n",
+    "# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory\n",
+    "\n",
+    "import os\n",
+    "for dirname, _, filenames in os.walk('/kaggle/input'):\n",
+    "    for filename in filenames:\n",
+    "        print(os.path.join(dirname, filename))\n",
+    "\n",
+    "# You can write up to 20GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using \"Save & Run All\" \n",
+    "# You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "76d96e83",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T18:40:29.435732Z",
+     "iopub.status.busy": "2024-07-26T18:40:29.435251Z",
+     "iopub.status.idle": "2024-07-26T18:40:29.440538Z",
+     "shell.execute_reply": "2024-07-26T18:40:29.439457Z"
+    },
+    "papermill": {
+     "duration": 0.012399,
+     "end_time": "2024-07-26T18:40:29.442873",
+     "exception": false,
+     "start_time": "2024-07-26T18:40:29.430474",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "import matplotlib.pyplot as plt"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "e6ffb40f",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T18:40:29.451765Z",
+     "iopub.status.busy": "2024-07-26T18:40:29.451378Z",
+     "iopub.status.idle": "2024-07-26T18:40:29.517871Z",
+     "shell.execute_reply": "2024-07-26T18:40:29.516321Z"
+    },
+    "papermill": {
+     "duration": 0.07375,
+     "end_time": "2024-07-26T18:40:29.520410",
+     "exception": false,
+     "start_time": "2024-07-26T18:40:29.446660",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "                 INDICATOR                                               UNIT  \\\n",
+      "0  Death rates for suicide  Deaths per 100,000 resident population, age-ad...   \n",
+      "1  Death rates for suicide  Deaths per 100,000 resident population, age-ad...   \n",
+      "2  Death rates for suicide  Deaths per 100,000 resident population, age-ad...   \n",
+      "3  Death rates for suicide  Deaths per 100,000 resident population, age-ad...   \n",
+      "4  Death rates for suicide  Deaths per 100,000 resident population, age-ad...   \n",
+      "\n",
+      "   UNIT_NUM STUB_NAME  STUB_NAME_NUM   STUB_LABEL  STUB_LABEL_NUM  YEAR  \\\n",
+      "0         1     Total              0  All persons             0.0  1950   \n",
+      "1         1     Total              0  All persons             0.0  1960   \n",
+      "2         1     Total              0  All persons             0.0  1970   \n",
+      "3         1     Total              0  All persons             0.0  1980   \n",
+      "4         1     Total              0  All persons             0.0  1981   \n",
+      "\n",
+      "   YEAR_NUM       AGE  AGE_NUM  ESTIMATE  \n",
+      "0         1  All ages      0.0      13.2  \n",
+      "1         2  All ages      0.0      12.5  \n",
+      "2         3  All ages      0.0      13.1  \n",
+      "3         4  All ages      0.0      12.2  \n",
+      "4         5  All ages      0.0      12.3  \n"
+     ]
+    }
+   ],
+   "source": [
+    "data = pd.read_csv('/kaggle/input/death-rates-united-states/Death_rates_for_suicide__by_sex__race__Hispanic_origin__and_age__United_States.csv')\n",
+    "print(data.head())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "d21f33f1",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T18:40:29.529717Z",
+     "iopub.status.busy": "2024-07-26T18:40:29.529322Z",
+     "iopub.status.idle": "2024-07-26T18:40:29.535828Z",
+     "shell.execute_reply": "2024-07-26T18:40:29.534609Z"
+    },
+    "papermill": {
+     "duration": 0.01431,
+     "end_time": "2024-07-26T18:40:29.538568",
+     "exception": false,
+     "start_time": "2024-07-26T18:40:29.524258",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Index(['INDICATOR', 'UNIT', 'UNIT_NUM', 'STUB_NAME', 'STUB_NAME_NUM',\n",
+      "       'STUB_LABEL', 'STUB_LABEL_NUM', 'YEAR', 'YEAR_NUM', 'AGE', 'AGE_NUM',\n",
+      "       'ESTIMATE'],\n",
+      "      dtype='object')\n"
+     ]
+    }
+   ],
+   "source": [
+    "#identify the features\n",
+    "features = data.columns\n",
+    "print(features)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "bc433428",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T18:40:29.548803Z",
+     "iopub.status.busy": "2024-07-26T18:40:29.547790Z",
+     "iopub.status.idle": "2024-07-26T18:40:29.555053Z",
+     "shell.execute_reply": "2024-07-26T18:40:29.553897Z"
+    },
+    "papermill": {
+     "duration": 0.015075,
+     "end_time": "2024-07-26T18:40:29.557681",
+     "exception": false,
+     "start_time": "2024-07-26T18:40:29.542606",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "INDICATOR          object\n",
+      "UNIT               object\n",
+      "UNIT_NUM            int64\n",
+      "STUB_NAME          object\n",
+      "STUB_NAME_NUM       int64\n",
+      "STUB_LABEL         object\n",
+      "STUB_LABEL_NUM    float64\n",
+      "YEAR                int64\n",
+      "YEAR_NUM            int64\n",
+      "AGE                object\n",
+      "AGE_NUM           float64\n",
+      "ESTIMATE          float64\n",
+      "dtype: object\n"
+     ]
+    }
+   ],
+   "source": [
+    "#identify the data types\n",
+    "data_types = data.dtypes\n",
+    "print(data_types)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "726a7034",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T18:40:29.567445Z",
+     "iopub.status.busy": "2024-07-26T18:40:29.567025Z",
+     "iopub.status.idle": "2024-07-26T18:40:29.598350Z",
+     "shell.execute_reply": "2024-07-26T18:40:29.596661Z"
+    },
+    "papermill": {
+     "duration": 0.0391,
+     "end_time": "2024-07-26T18:40:29.600876",
+     "exception": false,
+     "start_time": "2024-07-26T18:40:29.561776",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "          UNIT_NUM  STUB_NAME_NUM  STUB_LABEL_NUM         YEAR     YEAR_NUM  \\\n",
+      "count  6390.000000    6390.000000     6390.000000  6390.000000  6390.000000   \n",
+      "mean      1.872926       4.621909        4.686775  1997.525822    22.692019   \n",
+      "std       0.333081       2.031777        1.829624    14.937451    12.286033   \n",
+      "min       1.000000       0.000000        0.000000  1950.000000     1.000000   \n",
+      "25%       2.000000       3.000000        3.230000  1988.000000    12.000000   \n",
+      "50%       2.000000       5.000000        5.125100  1999.000000    23.000000   \n",
+      "75%       2.000000       6.000000        6.153000  2009.000000    33.000000   \n",
+      "max       2.000000      11.000000        7.235000  2018.000000    42.000000   \n",
+      "\n",
+      "           AGE_NUM     ESTIMATE  \n",
+      "count  6390.000000  5484.000000  \n",
+      "mean      2.712207    13.709810  \n",
+      "std       1.932280    11.531805  \n",
+      "min       0.000000     0.300000  \n",
+      "25%       0.000000     5.000000  \n",
+      "50%       3.000000    10.500000  \n",
+      "75%       4.100000    19.500000  \n",
+      "max       6.000000    74.800000  \n"
+     ]
+    }
+   ],
+   "source": [
+    "#summary\n",
+    "summary = data.describe()\n",
+    "print(summary)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "c0f6cd2e",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T18:40:29.610533Z",
+     "iopub.status.busy": "2024-07-26T18:40:29.610143Z",
+     "iopub.status.idle": "2024-07-26T18:40:29.615373Z",
+     "shell.execute_reply": "2024-07-26T18:40:29.614366Z"
+    },
+    "papermill": {
+     "duration": 0.013231,
+     "end_time": "2024-07-26T18:40:29.618195",
+     "exception": false,
+     "start_time": "2024-07-26T18:40:29.604964",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "THIS DATASET CONTAINS THE DEATH RATES IN UNITED STATES\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(\"THIS DATASET CONTAINS THE DEATH RATES IN UNITED STATES\")"
+   ]
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "none",
+   "dataSources": [
+    {
+     "datasetId": 5432616,
+     "sourceId": 9016039,
+     "sourceType": "datasetVersion"
+    }
+   ],
+   "dockerImageVersionId": 30746,
+   "isGpuEnabled": false,
+   "isInternetEnabled": false,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.13"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 4.674402,
+   "end_time": "2024-07-26T18:40:30.143254",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2024-07-26T18:40:25.468852",
+   "version": "2.5.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
